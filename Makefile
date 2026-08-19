@@ -23,7 +23,6 @@ C_SOURCES := \
 	filesystem/filesystem.c \
 	security/login.c \
 	security/permissions.c \
-	security/security.c \
 	shell/commands.c \
 	shell/shell.c
 
