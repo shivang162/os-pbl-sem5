@@ -4,7 +4,12 @@ StudyOS is a beginner-friendly educational operating system project focused on s
 
 ## Current Phase
 
-Phase 1 (Architecture) is initialized in this repository.
+Phase 1 (Architecture) and Phase 2 (Development Setup Guide) are initialized in this repository.
+
+## Documentation
+
+- `/home/runner/work/os-pbl-sem5/os-pbl-sem5/docs/architecture.md`
+- `/home/runner/work/os-pbl-sem5/os-pbl-sem5/docs/setup.md`
 
 ## High-Level Architecture
 
