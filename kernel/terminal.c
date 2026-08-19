@@ -32,7 +32,7 @@ static void terminal_scroll(void) {
     terminal_row = TERMINAL_HEIGHT - 1;
 }
 
-static void terminal_put_char(char c) {
+void terminal_put_char(char c) {
     if (c == '\n') {
         terminal_row++;
         terminal_col = 0;
@@ -48,6 +48,21 @@ static void terminal_put_char(char c) {
         terminal_row++;
         terminal_scroll();
     }
+}
+
+void terminal_backspace(void) {
+    if (terminal_row == 0 && terminal_col == 0) {
+        return;
+    }
+
+    if (terminal_col == 0) {
+        terminal_row--;
+        terminal_col = TERMINAL_WIDTH - 1;
+    } else {
+        terminal_col--;
+    }
+
+    VGA_BUFFER[terminal_row * TERMINAL_WIDTH + terminal_col] = vga_entry(' ', terminal_color);
 }
 
 void terminal_clear(void) {
