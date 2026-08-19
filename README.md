@@ -4,7 +4,8 @@ StudyOS is a beginner-friendly educational operating system project focused on s
 
 ## Current Phase
 
-Phase 1 (Architecture), Phase 2 (Development Setup Guide), Phase 3 (Project Structure), and Phase 4 (GRUB Multiboot boot path + bootable ISO milestone) are initialized in this repository.
+Phase 1 (Architecture), Phase 2 (Development Setup Guide), Phase 3 (Project Structure), and Phase 4 (GRUB Multiboot boot path + bootable ISO milestone) are completed.
+Phase 5 (Basic Kernel Terminal) is now started with core terminal output behavior improvements.
 
 ## Documentation
 
