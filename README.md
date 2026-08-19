@@ -4,7 +4,7 @@ StudyOS is a beginner-friendly educational operating system project focused on s
 
 ## Current Phase
 
-Phase 1 (Architecture), Phase 2 (Development Setup Guide), and Phase 3 (Project Structure) are initialized in this repository.
+Phase 1 (Architecture), Phase 2 (Development Setup Guide), Phase 3 (Project Structure), and Phase 4 (GRUB Multiboot boot path + bootable ISO milestone) are initialized in this repository.
 
 ## Documentation
 
@@ -38,3 +38,11 @@ Architecture → Setup → Structure → Boot → Basic Kernel → Shell → Fil
 Boot a StudyOS ISO in QEMU and display:
 
 `StudyOS Kernel Started Successfully!`
+
+## Build and Run (Phase 4)
+
+```bash
+make all
+make iso
+make run
+```
