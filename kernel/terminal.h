@@ -2,7 +2,8 @@
 #define STUDYOS_TERMINAL_H
 
 void terminal_clear(void);
+void terminal_put_char(char c);
+void terminal_backspace(void);
 void terminal_write(const char *text);
 
 #endif
-

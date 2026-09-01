@@ -16,6 +16,5 @@ void kernel_early_init(void) {
 
 void kernel_main(void) {
     kernel_early_init();
-    terminal_write("StudyOS Kernel Started Successfully!\n");
     shell_start();
 }
