@@ -1,8 +1,10 @@
 #include "filesystem.h"
+#include "../security/security.h"
 
 typedef struct {
     int used;
     int is_directory;
+    char owner[FS_OWNER_MAX];
     char name[FS_NAME_MAX];
     char content[FS_CONTENT_MAX];
 } fs_entry_t;
@@ -30,6 +32,17 @@ static int str_equal(const char *a, const char *b) {
     return a[i] == '\0' && b[i] == '\0';
 }
 
+static int str_starts_with(const char *text, const char *prefix) {
+    unsigned int i = 0;
+    while (prefix[i] != '\0') {
+        if (text[i] != prefix[i]) {
+            return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+
 static void str_copy(char *dst, const char *src, unsigned int dst_size) {
     unsigned int i = 0;
     if (dst_size == 0) {
@@ -40,6 +53,43 @@ static void str_copy(char *dst, const char *src, unsigned int dst_size) {
         i++;
     }
     dst[i] = '\0';
+}
+
+static int owner_can_access(const fs_entry_t *entry) {
+    if (security_is_admin()) {
+        return 1;
+    }
+    if (!security_is_logged_in()) {
+        return 0;
+    }
+    return str_equal(entry->owner, security_current_username());
+}
+
+static int can_create_in_path(const char *name) {
+    unsigned int i = 0;
+    char path_user[FS_OWNER_MAX];
+    const char *prefix = "/home/";
+
+    if (!security_is_logged_in()) {
+        return 0;
+    }
+    if (security_is_admin()) {
+        return 1;
+    }
+    if (!str_starts_with(name, prefix)) {
+        return 1;
+    }
+
+    i = 6;
+    while (name[i] != '\0' && name[i] != '/' && (i - 6) < FS_OWNER_MAX - 1) {
+        path_user[i - 6] = name[i];
+        i++;
+    }
+    path_user[i - 6] = '\0';
+    if (path_user[0] == '\0') {
+        return 0;
+    }
+    return str_equal(path_user, security_current_username());
 }
 
 static int is_name_valid(const char *name) {
@@ -95,6 +145,7 @@ void filesystem_init(void) {
     for (i = 0; i < FS_MAX_ENTRIES; i++) {
         fs_entries[i].used = 0;
         fs_entries[i].is_directory = 0;
+        fs_entries[i].owner[0] = '\0';
         fs_entries[i].name[0] = '\0';
         fs_entries[i].content[0] = '\0';
     }
@@ -108,10 +159,13 @@ int filesystem_ls(char *buffer, unsigned int size) {
     if (buffer == 0 || size == 0) {
         return FS_ERR_INVALID;
     }
+    if (!security_is_logged_in()) {
+        return FS_ERR_NOT_LOGGED_IN;
+    }
 
     buffer[0] = '\0';
     for (i = 0; i < FS_MAX_ENTRIES; i++) {
-        if (!fs_entries[i].used) {
+        if (!fs_entries[i].used || !owner_can_access(&fs_entries[i])) {
             continue;
         }
 
@@ -128,6 +182,18 @@ int filesystem_ls(char *buffer, unsigned int size) {
 
         if (!append_text(buffer, size, &length, fs_entries[i].name)) {
             return FS_ERR_TOO_LARGE;
+        }
+
+        if (security_is_admin()) {
+            if (!append_text(buffer, size, &length, " (owner: ")) {
+                return FS_ERR_TOO_LARGE;
+            }
+            if (!append_text(buffer, size, &length, fs_entries[i].owner)) {
+                return FS_ERR_TOO_LARGE;
+            }
+            if (!append_text(buffer, size, &length, ")")) {
+                return FS_ERR_TOO_LARGE;
+            }
         }
 
         if (fs_entries[i].is_directory) {
@@ -149,8 +215,14 @@ int filesystem_ls(char *buffer, unsigned int size) {
 
 int filesystem_mkdir(const char *name) {
     int free_slot = 0;
+    if (!security_is_logged_in()) {
+        return FS_ERR_NOT_LOGGED_IN;
+    }
     if (!is_name_valid(name)) {
         return FS_ERR_INVALID;
+    }
+    if (!can_create_in_path(name)) {
+        return FS_ERR_PERMISSION;
     }
     if (find_entry(name) >= 0) {
         return FS_ERR_EXISTS;
@@ -162,6 +234,7 @@ int filesystem_mkdir(const char *name) {
 
     fs_entries[free_slot].used = 1;
     fs_entries[free_slot].is_directory = 1;
+    str_copy(fs_entries[free_slot].owner, security_current_username(), FS_OWNER_MAX);
     str_copy(fs_entries[free_slot].name, name, FS_NAME_MAX);
     fs_entries[free_slot].content[0] = '\0';
     return FS_OK;
@@ -169,8 +242,14 @@ int filesystem_mkdir(const char *name) {
 
 int filesystem_touch(const char *name) {
     int free_slot = 0;
+    if (!security_is_logged_in()) {
+        return FS_ERR_NOT_LOGGED_IN;
+    }
     if (!is_name_valid(name)) {
         return FS_ERR_INVALID;
+    }
+    if (!can_create_in_path(name)) {
+        return FS_ERR_PERMISSION;
     }
     if (find_entry(name) >= 0) {
         return FS_ERR_EXISTS;
@@ -182,6 +261,7 @@ int filesystem_touch(const char *name) {
 
     fs_entries[free_slot].used = 1;
     fs_entries[free_slot].is_directory = 0;
+    str_copy(fs_entries[free_slot].owner, security_current_username(), FS_OWNER_MAX);
     str_copy(fs_entries[free_slot].name, name, FS_NAME_MAX);
     fs_entries[free_slot].content[0] = '\0';
     return FS_OK;
@@ -189,6 +269,9 @@ int filesystem_touch(const char *name) {
 
 int filesystem_cat(const char *name, char *buffer, unsigned int size) {
     int index = 0;
+    if (!security_is_logged_in()) {
+        return FS_ERR_NOT_LOGGED_IN;
+    }
     if (!is_name_valid(name) || buffer == 0 || size == 0) {
         return FS_ERR_INVALID;
     }
@@ -196,6 +279,9 @@ int filesystem_cat(const char *name, char *buffer, unsigned int size) {
     index = find_entry(name);
     if (index < 0) {
         return FS_ERR_NOT_FOUND;
+    }
+    if (!owner_can_access(&fs_entries[index])) {
+        return FS_ERR_PERMISSION;
     }
     if (fs_entries[index].is_directory) {
         return FS_ERR_NOT_FILE;
@@ -207,6 +293,9 @@ int filesystem_cat(const char *name, char *buffer, unsigned int size) {
 
 int filesystem_write(const char *name, const char *content) {
     int index = 0;
+    if (!security_is_logged_in()) {
+        return FS_ERR_NOT_LOGGED_IN;
+    }
     if (!is_name_valid(name) || content == 0) {
         return FS_ERR_INVALID;
     }
@@ -214,6 +303,9 @@ int filesystem_write(const char *name, const char *content) {
     index = find_entry(name);
     if (index < 0) {
         return FS_ERR_NOT_FOUND;
+    }
+    if (!owner_can_access(&fs_entries[index])) {
+        return FS_ERR_PERMISSION;
     }
     if (fs_entries[index].is_directory) {
         return FS_ERR_NOT_FILE;
@@ -228,6 +320,9 @@ int filesystem_write(const char *name, const char *content) {
 
 int filesystem_delete(const char *name) {
     int index = 0;
+    if (!security_is_logged_in()) {
+        return FS_ERR_NOT_LOGGED_IN;
+    }
     if (!is_name_valid(name)) {
         return FS_ERR_INVALID;
     }
@@ -236,9 +331,13 @@ int filesystem_delete(const char *name) {
     if (index < 0) {
         return FS_ERR_NOT_FOUND;
     }
+    if (!owner_can_access(&fs_entries[index])) {
+        return FS_ERR_PERMISSION;
+    }
 
     fs_entries[index].used = 0;
     fs_entries[index].is_directory = 0;
+    fs_entries[index].owner[0] = '\0';
     fs_entries[index].name[0] = '\0';
     fs_entries[index].content[0] = '\0';
     return FS_OK;

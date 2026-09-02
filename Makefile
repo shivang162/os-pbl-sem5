@@ -22,6 +22,8 @@ C_SOURCES := \
 	drivers/screen.c \
 	filesystem/filesystem.c \
 	security/login.c \
+	security/user.c \
+	security/password.c \
 	security/permissions.c \
 	shell/commands.c \
 	shell/shell.c
