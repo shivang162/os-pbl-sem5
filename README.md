@@ -6,11 +6,13 @@ StudyOS is a beginner-friendly educational operating system project focused on s
 
 Phase 1 (Architecture), Phase 2 (Development Setup Guide), Phase 3 (Project Structure), and Phase 4 (GRUB Multiboot boot path + bootable ISO milestone) are completed.
 Phase 5 (Basic Kernel Terminal), Phase 6 (Basic Shell), and Phase 7 (Educational File System Commands) are implemented.
+Phase 8 (Educational Security System with authentication, roles, sessions, and permissions) is implemented.
 
 ## Documentation
 
 - `/home/runner/work/os-pbl-sem5/os-pbl-sem5/docs/architecture.md`
 - `/home/runner/work/os-pbl-sem5/os-pbl-sem5/docs/setup.md`
+- `/home/runner/work/os-pbl-sem5/os-pbl-sem5/docs/security.md`
 
 ## Phase 3 Structure Status
 
@@ -32,7 +34,7 @@ Initial source skeletons are now added for:
 
 ## Development Roadmap
 
-Architecture → Setup → Structure → Boot → Basic Kernel → Shell → Filesystem → Security → Productivity → Gamification → Smart Behavior → Voice → Developer Tools → StudyCloud → UI Polish → Testing → Final Documentation
+Architecture → Setup → Structure → Boot → Basic Kernel → Shell → Filesystem → Security ✅ → Productivity → Gamification → Smart Behavior → Voice → Developer Tools → StudyCloud → UI Polish → Testing → Final Documentation
 
 ## First Milestone
 

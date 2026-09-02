@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "../drivers/keyboard.h"
 #include "../kernel/terminal.h"
+#include "../security/security.h"
 
 static int is_printable(char c) {
     return c >= 32 && c <= 126;
@@ -50,10 +51,14 @@ void shell_start(void) {
     terminal_write("              STUDYOS\n");
     terminal_write("       AI-POWERED STUDENT OS\n");
     terminal_write("========================================\n\n");
-    terminal_write("StudyOS Kernel v0.1\n");
-    terminal_write("Type 'help' to see available commands.\n\n");
+    while (!security_is_logged_in()) {
+        security_prompt_login();
+    }
 
     while (1) {
+        while (!security_is_logged_in()) {
+            security_prompt_login();
+        }
         command_buffer[0] = '\0';
         shell_print_prompt();
         shell_read_line(command_buffer, sizeof(command_buffer));
