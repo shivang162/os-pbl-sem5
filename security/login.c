@@ -6,14 +6,6 @@
 
 static security_session_t current_session;
 
-static unsigned int str_len(const char *text) {
-    unsigned int length = 0;
-    while (text[length] != '\0') {
-        length++;
-    }
-    return length;
-}
-
 static int str_equal(const char *a, const char *b) {
     unsigned int i = 0;
     while (a[i] != '\0' && b[i] != '\0') {
